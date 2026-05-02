@@ -1,0 +1,28 @@
+## Instrucciones para el usuario
+
+### **README.txt**
+=== TETRIS - Instrucciones de instalación ===
+
+1. Asegúrate de tener Python 3.8 o superior instalado
+   Descarga desde: https://www.python.org/downloads/
+
+2. Abre una terminal/cmd en esta carpeta
+
+3. Instala las dependencias:
+   pip install -r requirements.txt
+
+4. Ejecuta el juego:
+   python main.py
+
+5. ¡Regístrate y juega!
+
+CONTROLES:
+- Flecha izquierda/derecha: Mover pieza
+- Flecha abajo: Bajar más rápido
+- Flecha arriba: Rotar pieza
+- ESPACIO: Caída rápida
+- R: Reiniciar (después de game over)
+- ESC: Salir
+
+Tu puntuación se guardará automáticamente en el servidor.
+Visita https://tu-servidor.com/ranking para ver el ranking global.
