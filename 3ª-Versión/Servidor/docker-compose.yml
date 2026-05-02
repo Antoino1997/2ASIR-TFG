@@ -1,0 +1,26 @@
+version: '3.8'
+
+name: tetris-server
+
+services:
+  tetris-server:
+    image: jaceshadowninja/tetris-server:1.0
+    container_name: tetris-server
+    ports:
+      - "5000:5000"
+    volumes:
+      - tetris-data:/app/data
+    environment:
+      - FLASK_ENV=production
+      - DATABASE=/app/data/tetris.db
+    restart: unless-stopped
+    networks:
+      - tetris-network
+
+volumes:
+  tetris-data:
+    driver: local
+
+networks:
+  tetris-network:
+    driver: bridge
