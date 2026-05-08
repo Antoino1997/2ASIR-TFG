@@ -9,6 +9,7 @@
 - [Explicación Tecnologías y Alternativas](#explicación-tecnologías-y-alternativas)
 - [Estructura de Datos](#estructura-de-datos)
 - [Estructura del Proyecto (Carpetas)](#estructura-del-proyecto)
+- [Flujo de Comunicación](#flujo-de-comunicación)
 
 ## Introducción
 
@@ -291,3 +292,8 @@ Permite que el cliente pueda hacer peticiones al servidor desde otro puerto o do
 
 ## Estructura del Proyecto
 <img width="1920" height="1080" alt="Estructura Cliente" src="https://github.com/user-attachments/assets/cf9d7f14-d97b-4658-9e53-5095a3578a8e" />
+<br/> <img width="1920" height="1080" alt="Esquema Servidor" src="https://github.com/user-attachments/assets/bb1f0689-f4a1-4112-871a-701bca5fa8e5" />
+
+## Flujo de Comunicación
+### Fase 1: Registro
+<img width="1920" height="1080" alt="Flujo de comunicación Fase 1" src="https://github.com/user-attachments/assets/d19a1f62-805c-4af5-bdd1-490dfcb6775a" />
