@@ -297,3 +297,15 @@ Permite que el cliente pueda hacer peticiones al servidor desde otro puerto o do
 ## Flujo de Comunicación
 ### Fase 1: Registro
 <img width="1920" height="1080" alt="Flujo de comunicación Fase 1" src="https://github.com/user-attachments/assets/d19a1f62-805c-4af5-bdd1-490dfcb6775a" />
+
+### Fase 2: Login
+<img width="1920" height="1080" alt="Flujo de comunicación Fase 2" src="https://github.com/user-attachments/assets/69c1966e-8ff0-4741-88eb-89ff4e385f9c" />
+
+### Fase 3: Jugar
+<img width="1920" height="1080" alt="Flujo de comunicación Fase 3" src="https://github.com/user-attachments/assets/2ba497e3-e3df-4e12-9d65-79a23e3325ff" />
+
+### Fase 4: Guardar Puntuación
+<img width="1920" height="1080" alt="Flujo de comunicación Fase 4" src="https://github.com/user-attachments/assets/3c6705cd-d87a-4988-80b5-04f375b6bdd6" />
+
+### Fase 5: Ver Ranking
+<img width="1920" height="1080" alt="Flujo de comunicación Fase 5" src="https://github.com/user-attachments/assets/bdfdc2cb-1054-4d63-9107-2bbaecdbd00e" />
