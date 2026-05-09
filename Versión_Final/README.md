@@ -10,6 +10,7 @@
 - [Estructura de Datos](#estructura-de-datos)
 - [Estructura del Proyecto (Carpetas)](#estructura-del-proyecto)
 - [Flujo de Comunicación](#flujo-de-comunicación)
+- [Historial de Versiones](#historial-de-versiones)
 
 ## Introducción
 
@@ -309,3 +310,114 @@ Permite que el cliente pueda hacer peticiones al servidor desde otro puerto o do
 
 ### Fase 5: Ver Ranking
 <img width="1920" height="1080" alt="Flujo de comunicación Fase 5" src="https://github.com/user-attachments/assets/bdfdc2cb-1054-4d63-9107-2bbaecdbd00e" />
+
+## Historial de Versiones
+
+### v1.0 — Tetris Standalone + Inicio del Servidor
+La primera versión del proyecto se centró en desarrollar el juego funcional de forma
+completamente local, sin ninguna dependencia externa ni conexión de red.
+
+**Cliente:**
+- Implementación completa del juego Tetris en un único archivo (`tetris_standalone.py`)
+- Toda la lógica en un solo fichero: piezas, tablero, renderizado y menú
+- Las 7 piezas con sus rotaciones definidas mediante matrices
+- Sistema de puntuación (100 puntos por línea, bonus por líneas múltiples)
+- Menú principal con opciones de jugar, ver controles y salir
+- Sin dependencias externas más allá de `pygame`
+
+**Servidor:**
+- Inicio del diseño de la API REST con Flask
+- Definición de los endpoints básicos: `/api/register`, `/api/login`, `/api/score`, `/api/ranking`
+- Estructura inicial de la base de datos SQLite con las tablas `users` y `scores`
+
+**Dependencias:**
+- pygame==2.5.2
+
+---
+
+### v2.0 — División de Responsabilidades + Servidor Completo
+La segunda versión supuso una refactorización completa del cliente aplicando el principio
+de separación de responsabilidades, y el desarrollo completo del servidor con todas sus
+funcionalidades de seguridad y comunicación.
+
+**Cliente:**
+- Separación del código en módulos independientes:
+  - `config.py` — constantes y configuración
+  - `game/board.py` — lógica del tablero
+  - `game/pieces.py` — definición y rotación de piezas
+  - `game/tetris.py` — lógica principal del juego
+  - `game/renderer.py` — renderizado y dibujado
+  - `ui/login_screen.py` — pantalla de inicio de sesión
+  - `ui/menu.py` — menú principal con ranking e instrucciones
+  - `api_client.py` — comunicación HTTP con el servidor
+- Incorporación de `pygame_gui` para los menús y pantalla de login
+- Conexión con el servidor para login, registro y guardado de puntuaciones
+- Visualización del ranking global descargado del servidor
+
+**Servidor:**
+- API REST completamente desarrollada con Flask
+- Autenticación de usuarios con tokens JWT (caducidad de 7 días)
+- Encriptación de contraseñas con bcrypt
+- Base de datos SQLite con índice de rendimiento sobre puntuaciones
+- Context manager para gestión segura de conexiones a la base de datos
+- Página web del ranking en HTML con Jinja2 (`/ranking`)
+- Habilitación de CORS con Flask-CORS
+
+**Dependencias:**
+- pygame==2.5.2
+- requests==2.31.0
+- pygame-gui==0.6.9
+- flask
+- flask-cors
+- bcrypt
+- pyjwt
+
+---
+
+### v3.0 — Servidor Dockerizado + Cliente Ejecutable
+La tercera versión se centró en el despliegue y la distribución del proyecto,
+haciendo que tanto el servidor como el cliente fueran fáciles de ejecutar en
+cualquier máquina sin necesidad de instalar dependencias manualmente.
+
+**Servidor:**
+- Creación del `Dockerfile` para contenerizar el servidor Flask
+- Creación del `docker-compose.yml` con volumen nombrado para persistencia de la base de datos
+- Publicación de la imagen en Docker Hub (`jaceshadowninja/tetris-server:1.0`)
+- El servidor arranca con un único comando: `docker compose up`
+
+**Cliente:**
+- Empaquetado del cliente Pygame como ejecutable `.exe` con PyInstaller
+- El cliente puede ejecutarse en Windows sin tener Python instalado
+- Distribución simplificada para el ordenador del profesor
+
+**Dependencias servidor (imagen Docker):**
+- flask
+- flask-cors
+- bcrypt
+- pyjwt
+- sqlite3
+
+---
+
+### v4.0 — Versión Final
+La versión final se dedicó a la estabilización del proyecto, corrección de errores
+detectados durante las pruebas y elaboración de la documentación completa.
+
+**Corrección de errores:**
+- Centrado correcto de los bloques decorativos en el menú principal
+- Corrección de la indentación del método `draw_background()` en `menu.py`
+- Eliminación del `RUN python -c "import database; database.init_db()"` del Dockerfile
+  (la base de datos se inicializa en tiempo de ejecución, no durante la construcción de la imagen)
+- Precarga de la fuente `fira_code` en `pygame_gui` para eliminar warnings en la pantalla de instrucciones
+- Corrección del `docker-compose.yml`: sustitución de `build: .` por `image:` para usar
+  la imagen publicada en Docker Hub
+
+**Documentación:**
+- Elaboración completa del `README.md` con introducción, arquitectura, tecnologías
+  y alternativas, estructura de datos, estructura del proyecto y flujo de comunicación
+- Comentado línea a línea de todos los ficheros del proyecto
+- Historial de versiones
+
+**Toques finales:**
+- Rediseño de la página web del ranking con estética editorial (`ranking.html`)
+- Ajuste de márgenes y dimensiones del panel de información del juego
