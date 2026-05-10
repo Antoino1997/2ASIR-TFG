@@ -11,6 +11,7 @@
 - [Estructura del Proyecto (Carpetas)](#estructura-del-proyecto)
 - [Flujo de Comunicación](#flujo-de-comunicación)
 - [Historial de Versiones](#historial-de-versiones)
+- [Docker y Distribución](#docker-y-distribución)
 
 ## Introducción
 
@@ -421,3 +422,193 @@ detectados durante las pruebas y elaboración de la documentación completa.
 **Toques finales:**
 - Rediseño de la página web del ranking con estética editorial (`ranking.html`)
 - Ajuste de márgenes y dimensiones del panel de información del juego
+
+## Docker y Distribución
+
+### ¿Por qué Docker?
+
+Durante el desarrollo del servidor surgió un problema clásico: el servidor funcionaba
+perfectamente en mi ordenador, pero al intentar ejecutarlo en otro ordenador había que
+instalar Python, Flask, bcrypt, y todas las dependencias manualmente, y cualquier
+diferencia de versión podía romper el funcionamiento.
+
+Docker soluciona esto empaquetando el servidor junto con todas sus dependencias en una
+**imagen** — un paquete autocontenido que funciona igual en cualquier máquina que tenga
+Docker instalado, independientemente del sistema operativo o de lo que tenga instalado.
+
+---
+
+### Conceptos Clave
+
+- **Imagen** — la "plantilla" del servidor. Contiene el sistema operativo base, Python,
+  todas las librerías y el código. Se construye una vez con `docker build` y se puede
+  distribuir a cualquier máquina.
+
+- **Contenedor** — una instancia en ejecución de la imagen. Es lo que realmente está
+  corriendo cuando el servidor está activo. Se puede parar, reiniciar o eliminar sin
+  afectar a la imagen.
+
+- **Volumen** — mecanismo de persistencia de datos. Como los contenedores son efímeros
+  (al eliminarlos pierden sus datos), el volumen guarda la base de datos SQLite fuera
+  del contenedor para que sobreviva a reinicios y actualizaciones.
+
+- **Docker Hub** — repositorio público de imágenes, equivalente a GitHub pero para
+  imágenes Docker. Desde aquí el profesor puede descargar la imagen sin necesitar
+  el código fuente.
+
+---
+
+### Dockerfile
+
+El `Dockerfile` es el fichero que define cómo se construye la imagen del servidor:
+
+```dockerfile
+FROM python:3.11-slim                          # imagen base con Python 3.11
+
+WORKDIR /app                                   # directorio de trabajo dentro del contenedor
+
+RUN apt-get update && apt-get install -y \
+    sqlite3 && \                               # instalamos sqlite3 para poder inspeccionar la BD
+    rm -rf /var/lib/apt/lists/*                # limpiamos cache para reducir el tamaño de la imagen
+
+COPY requirements.txt .                        # copiamos las dependencias
+RUN pip install --no-cache-dir -r \
+    requirements.txt                           # instalamos las dependencias
+
+COPY . .                                       # copiamos todo el código del servidor
+
+EXPOSE 5000                                    # indicamos que el servidor escucha en el puerto 5000
+
+ENV FLASK_ENV=production                       # configuramos el entorno como producción
+ENV PYTHONUNBUFFERED=1                         # los logs aparecen en tiempo real sin buffer
+
+CMD ["python", "app.py"]                       # comando que arranca el servidor
+```
+
+---
+
+### docker-compose.yml
+
+El `docker-compose.yml` define cómo se arranca el contenedor con toda su configuración:
+
+```yaml
+version: '3.8'
+
+name: tetris-server                            # nombre del proyecto en Docker Desktop
+
+services:
+  tetris-server:
+    image: jaceshadowninja/tetris-server:1.0   # imagen descargada de Docker Hub
+    container_name: tetris-server              # nombre del contenedor
+    ports:
+      - "5000:5000"                            # puerto del host : puerto del contenedor
+    volumes:
+      - tetris-data:/app/data                  # volumen nombrado para persistir la base de datos
+    environment:
+      - FLASK_ENV=production
+      - DATABASE=/app/data/tetris.db           # ruta de la base de datos dentro del contenedor
+    restart: unless-stopped                    # el contenedor se reinicia solo si se cae
+    networks:
+      - tetris-network
+
+volumes:
+  tetris-data:                                 # Docker gestiona el volumen internamente
+    driver: local
+
+networks:
+  tetris-network:
+    driver: bridge
+```
+
+Se eligió **volumen nombrado** en vez de bind mount (carpeta local) porque al mover
+el proyecto a otro ordenador solo hace falta el `docker-compose.yml` — Docker crea
+el volumen automáticamente sin necesidad de crear carpetas manualmente.
+
+---
+
+### Flujo de Despliegue
+
+**En mi máquina (desarrollo):**
+```bash
+# 1. Construir la imagen con el Dockerfile
+docker build -t jaceshadowninja/tetris-server:1.0 .
+
+# 2. Subir la imagen a Docker Hub
+docker login
+docker push jaceshadowninja/tetris-server:1.0
+```
+
+**En el ordenador del profesor (exposición):**
+```bash
+# 1. Ir a la carpeta del servidor
+cd ruta/Servidor
+
+# 2. Descargar el proyecto
+docker login
+docker pull jaceshadowninja/tetris-server:1.0
+
+# 3. Arrancar — Docker descarga la imagen automáticamente y arranca el contenedor
+docker compose up
+```
+
+El servidor queda accesible en `http://localhost:5000` y el ranking en
+`http://localhost:5000/ranking`.
+
+---
+
+### Inspeccionar la Base de Datos
+
+Si durante la exposición se necesita ver el contenido de la base de datos:
+
+```bash
+# Entrar al contenedor
+docker exec -it tetris-server bash
+
+# Abrir la base de datos
+sqlite3 /app/data/tetris.db
+
+# Consultas útiles
+.tables                    # ver todas las tablas
+SELECT * FROM users;       # ver usuarios registrados
+SELECT * FROM scores;      # ver puntuaciones guardadas
+.quit                      # salir
+```
+
+---
+
+### Ejecutable del Cliente (.exe)
+
+#### ¿Por qué un ejecutable?
+
+El cliente está desarrollado en Python, lo que significa que para ejecutarlo
+normalmente hace falta tener Python instalado junto con todas sus dependencias
+(`pygame`, `pygame_gui`, `requests`). En la exposición esto supone un problema:
+el ordenador en el que voy a exponer puede no tener Python, o tener una versión diferente.
+
+La solución fue empaquetar el cliente como un ejecutable `.exe` de Windows usando
+**PyInstaller** — una herramienta que toma el código Python y lo convierte en un
+fichero ejecutable que incluye el intérprete de Python y todas las dependencias
+dentro. El resultado es un único `.exe` que cualquier ordenador Windows puede
+ejecutar con doble clic, sin instalar nada.
+
+#### ¿Cómo se generó?
+
+```bash
+# Instalamos PyInstaller
+pip install pyinstaller
+
+# Generamos el ejecutable
+pyinstaller --onefile --windowed main.py
+```
+
+- `--onefile` — empaqueta todo en un único `.exe` en vez de una carpeta con múltiples ficheros
+- `--windowed` — evita que aparezca una ventana de terminal negra al ejecutar el juego
+
+El ejecutable generado aparece en la carpeta `dist/main.exe`.
+
+#### Limitaciones
+
+- El ejecutable generado en Windows solo funciona en Windows. Si se quisiera
+  distribuir en Mac o Linux habría que generarlo desde esos sistemas operativos.
+- El `config.py` con la `SERVER_URL` queda fijada en el momento de compilar —
+  si el servidor cambia de IP hay que recompilar el ejecutable.
