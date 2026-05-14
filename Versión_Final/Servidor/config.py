@@ -1,7 +1,7 @@
 # servidor/config.py
 class Config:
     # Base de datos SQLite (para testing local)
-    DATABASE = 'tetris.db'
+    DATABASE = '/app/data/tetris.db'
 
     # Clave secreta para JWT
     SECRET_KEY = 'tu-clave-secreta-super-segura-cambiar-en-produccion'
